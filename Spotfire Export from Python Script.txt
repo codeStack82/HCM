@@ -1,0 +1,146 @@
+#Import All Necessary Functions
+import Spotfire.Dxp.Application.Visuals.VisualContent as visualcontent
+import clr
+import System
+import sys
+import Spotfire.Dxp.Application.Visuals.VisualContent as visualcontent
+clr.AddReference('System.Data')
+clr.AddReference('System.Web.Extensions')
+from Spotfire.Dxp.Application import Page
+from Spotfire.Dxp.Application.Visuals import VisualContent, TablePlot, HtmlTextArea, SummaryTable
+from System import IO, Net, Environment, String, Array
+from System.IO import Path, StreamWriter
+from System.Text import StringBuilder, Encoding
+from System.Net import Mail, Mime
+from System import DateTime, Decimal, Boolean
+from System.Data import DataSet, DataTable
+from System.Text import StringBuilder
+from System.IO import StringReader, StreamReader, StreamWriter, MemoryStream, SeekOrigin
+from System.Net import HttpWebRequest, CredentialCache
+from System.Web.Script.Serialization import JavaScriptSerializer
+from Spotfire.Dxp.Data import IndexSet, RowSelection, DataValueCursor, DataSelection, DataType, DataTableSaveSettings
+from Spotfire.Dxp.Data.Import import TextFileDataSource, TextDataReaderSettings
+from Spotfire.Dxp.Application import Page
+from Spotfire.Dxp.Application.Visuals import VisualContent
+from System import IO, Net, Environment, String, Array
+from System.Net import Mail, Mime
+from System.Drawing import Bitmap, Graphics, Rectangle, Point
+from System.IO import Path, File, Stream, MemoryStream, StreamReader, StreamWriter
+from System.Text import Encoding
+from Spotfire.Dxp.Application.Filters import ListBoxFilter
+from Spotfire.Dxp.Data import *
+from System.IO import Path, StreamWriter
+from Spotfire.Dxp.Application.Visuals import CrossTablePlot
+from System import DateTime, Decimal, Boolean
+from System.IO import StringReader, StreamReader, StreamWriter, MemoryStream, SeekOrigin
+from System.Net import HttpWebRequest, CredentialCache
+from System.Web.Script.Serialization import JavaScriptSerializer
+from Spotfire.Dxp.Data import IndexSet, RowSelection, DataValueCursor, DataSelection, DataType, DataTableSaveSettings
+from Spotfire.Dxp.Data.Import import TextFileDataSource, TextDataReaderSettings
+from Spotfire.Dxp.Application import Page
+from Spotfire.Dxp.Application.Visuals import VisualContent
+from System import IO, Net, Environment, String, Array
+from System.Net import Mail, Mime
+from System.Drawing import Bitmap, Graphics, Rectangle, Point
+from System.IO import Path, File, Stream, MemoryStream, StreamReader, StreamWriter
+from System.Text import Encoding
+from Spotfire.Dxp.Application.Filters import ListBoxFilter
+from Spotfire.Dxp.Data import *
+
+Document.Properties["xmlinput"] = ""
+Document.Properties["username"] = ""
+Document.Properties["propertyNumber"] = ""
+Document.Properties["dataIndex"] = ""
+
+####################
+### HTML Builder ###
+####################
+
+# The way this scrip works is
+# 1 Export Cross Table data into a temp file
+# 2 Read temp file and create html
+# 3 Write html into a Text Area
+# Note: viz and textArea are script parameters
+
+#1 Export Cross Table data into a temp file
+#1.a Temp file for storing the cross table data
+tempFolder = Path.GetTempPath()
+tempFilename = Path.GetTempFileName()
+
+#1.b Export CrossTable data to the temp file
+writer = StreamWriter(tempFilename)
+viz.As[CrossTablePlot]().ExportText(writer)
+
+#2 Read temp file and create html
+#2.a open the temp file    
+f = open(tempFilename)
+g = open(tempFilename)
+
+rowCount=0
+
+#firstColumn variable is used to eliminate the first column from crosstable.
+firstColumn=""
+#To identify the Subtotal row.
+isSubTotalRow=False
+stringinput = ""
+propertyNumber = ""
+dataIndex = ""
+
+for line in g:
+	rowCount=rowCount+1
+maxrowCount = rowCount
+#print maxrowCount
+g.close()
+
+#print stringinput
+#2.b Build the HTML
+#rowCount variable is used to eliminate the first row from crosstable.  
+
+rowCount=0
+stringinput = ""
+
+#reading line by line from the temp table
+for line in f:
+	rowCount=rowCount+1
+	#if rowCount>1:
+	count=1
+	for col in line.split('\t'):
+	#		stringinput += col
+	#	print rowCount			
+	#	print count
+	#	print col
+
+		if count==1:
+			propertyNumber = col
+		if count==2:
+			dataIndex = col
+		count=count+1
+	#	isSubTotalRow=False
+		if rowCount > 1:
+			if count < 35:
+				stringinput += col + ";"
+			else:
+				stringinput += ""
+	if rowCount == maxrowCount:
+		stringinput += ""
+	else:
+		if rowCount > 1:
+			stringinput += "~"
+print stringinput
+print propertyNumber
+print dataIndex
+
+f.close()
+
+Document.Properties["xmlinput"] = stringinput
+Document.Properties["username"] = Environment.UserName
+Document.Properties["propertyNumber"] = propertyNumber
+Document.Properties["dataIndex"] = dataIndex
+
+
+#Send Confirmation Message
+clr.AddReference("System.Windows.Forms")
+from System.Windows.Forms import MessageBox
+MessageBox.Show("Results have been saved successfully.")
+
+Document.ActivePageReference = Document.Pages[1]
